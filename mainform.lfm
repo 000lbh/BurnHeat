@@ -1,0 +1,132 @@
+object Form1: TForm1
+  Left = 532
+  Height = 542
+  Top = 257
+  Width = 770
+  Caption = 'Autolab'
+  ClientHeight = 542
+  ClientWidth = 770
+  DesignTimePPI = 120
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  LCLVersion = '2.2.2.0'
+  object SelectPort: TComboBox
+    Left = 312
+    Height = 28
+    Top = 56
+    Width = 125
+    ItemHeight = 20
+    ItemIndex = 0
+    Items.Strings = (
+      'COM1'
+      'COM2'
+      'COM3'
+      'COM4'
+      'COM5'
+      'COM6'
+      'COM7'
+      'COM8'
+    )
+    TabOrder = 0
+    Text = 'COM1'
+  end
+  object ConnectPort: TButton
+    Left = 326
+    Height = 31
+    Top = 85
+    Width = 94
+    Caption = 'Connect'
+    OnClick = ConnectPortClick
+    TabOrder = 1
+  end
+  object HoldData: TButton
+    Left = 283
+    Height = 31
+    Top = 470
+    Width = 94
+    Caption = 'HoldData'
+    Enabled = False
+    OnClick = HoldDataClick
+    TabOrder = 2
+  end
+  object Save: TButton
+    Left = 392
+    Height = 31
+    Top = 470
+    Width = 94
+    Caption = 'Save'
+    OnClick = SaveClick
+    TabOrder = 3
+  end
+  object Label1: TLabel
+    Left = 496
+    Height = 20
+    Top = 88
+    Width = 105
+    Caption = 'MachineCode:'
+    ParentColor = False
+  end
+  object maccode: TLabel
+    Left = 608
+    Height = 20
+    Top = 88
+    Width = 66
+    Caption = 'unknown'
+    ParentColor = False
+  end
+  object OutputArea: TMemo
+    Left = 104
+    Height = 329
+    Top = 128
+    Width = 536
+    ReadOnly = True
+    TabOrder = 4
+  end
+  object CheckBox1: TCheckBox
+    Left = 496
+    Height = 24
+    Top = 470
+    Width = 94
+    Caption = 'AutoSave'
+    Enabled = False
+    TabOrder = 5
+  end
+  object AboutButton: TButton
+    Left = 176
+    Height = 31
+    Top = 470
+    Width = 94
+    Caption = 'About'
+    OnClick = AboutButtonClick
+    TabOrder = 6
+  end
+  object SaveDialog1: TSaveDialog
+    DefaultExt = '.csv'
+    Left = 193
+    Top = 61
+  end
+  object ExpDataSet: TSdfDataSet
+    FileMustExist = False
+    ReadOnly = False
+    FileName = 'DefaultExpData.csv'
+    Schema.Strings = (
+      'Time'
+      'Temp'
+    )
+    FieldDefs = <    
+      item
+        Name = 'Time'
+        DataType = ftString
+      end    
+      item
+        Name = 'Temp'
+        DataType = ftString
+      end>
+    AllowMultiLine = False
+    Delimiter = ','
+    FirstLineAsSchema = True
+    StripTrailingDelimiters = False
+    Left = 104
+    Top = 24
+  end
+end
