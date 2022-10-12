@@ -14,9 +14,14 @@ type
 
   TForm1 = class(TForm)
     AboutButton: TButton;
-    CheckBox1: TCheckBox;
+    AutoSaveCheck: TCheckBox;
+    AutoHold: TLabel;
+    AutoHoldPanel: TPanel;
+    SwitchTimer: TButton;
+    IntervalSet: TEdit;
     HoldData: TButton;
     Label1: TLabel;
+    Label2: TLabel;
     maccode: TLabel;
     OutputArea: TMemo;
     Save: TButton;
@@ -24,14 +29,18 @@ type
     SaveDialog1: TSaveDialog;
     ExpDataSet: TSdfDataSet;
     SelectPort: TComboBox;
+    HoldInterval: TTimer;
     procedure AboutButtonClick(Sender: TObject);
     procedure ConnectPortClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure HoldDataClick(Sender: TObject);
+    procedure HoldIntervalTimer(Sender: TObject);
     procedure SaveClick(Sender: TObject);
+    procedure SwitchTimerClick(Sender: TObject);
   private
-
+    procedure StartTimer;
+    procedure StopTimer;
   public
 
   end;
@@ -40,6 +49,7 @@ var
   Form1: TForm1;
   port: HANDLE;
   msg: array[0..1024] of char;
+  FileName: string;
 
 implementation
 
@@ -91,7 +101,7 @@ end;
 
 procedure TForm1.AboutButtonClick(Sender: TObject);
 begin
-  MessageBoxA(Form1.Handle, 'Made By 000lbh v0.1'#10'License: GPL v3'#10'Reference: Benzoin96485/Combust', 'About', 64);
+  MessageBoxA(Form1.Handle, 'Made By 000lbh v0.2'#10'License: GPL v3'#10'Reference: Benzoin96485/Combust', 'About', 64);
 end;
 
 procedure TForm1.FormCreate(Sender: TObject);
@@ -114,19 +124,25 @@ var
   i: integer;
 begin
   PurgeComm(port, PURGE_RXCLEAR);
-  if not ReadFile(port, buf, 7, bytesread, nil) then
-  begin
-    ErrorCode := GetLastError();
-    ShowMessage('Oops, read failed!');
-    FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, nil, ErrorCode, LANG_NEUTRAL,
-      LPSTR(@msg), 1024, nil);
-    MessageBoxA(Form1.Handle, LPCSTR(@msg), LPCSTR(Form1.Caption), MB_ICONERROR);
-    exit;
-  end;
-  if buf[0] <> 255 then
-  begin
-    ShowMessage('Oops, got corrupted data!');
-    exit;
+  for i:=1 to 5 do begin
+    if not ReadFile(port, buf, 7, bytesread, nil) then
+    begin
+      ErrorCode := GetLastError();
+      StopTimer;
+      ShowMessage('Oops, read failed!');
+      FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, nil, ErrorCode, LANG_NEUTRAL,
+        LPSTR(@msg), 1024, nil);
+      MessageBoxA(Form1.Handle, LPCSTR(@msg), LPCSTR(Form1.Caption), MB_ICONERROR);
+      exit;
+    end;
+    if buf[0] = 255 then
+       break;
+    if i = 5 then
+    begin
+      StopTimer;
+      ShowMessage('Oops, got corrupted data!');
+      exit;
+    end;
   end;
   maccode.Caption := buf[1].ToString();
   case buf[2] of
@@ -140,14 +156,44 @@ begin
     gotdata := gotdata + buf[i].ToString();
   OutputArea.Lines.Add(TimeToStr(Time()) + ', ' + gotdata);
   ExpDataSet.AppendRecord([TimeToStr(Time()), gotdata]);
+  if AutoSaveCheck.Checked then
+    ExpDataSet.SaveFileAs(FileName);
+end;
+
+procedure TForm1.HoldIntervalTimer(Sender: TObject);
+begin
+  HoldDataClick(Sender);
 end;
 
 procedure TForm1.SaveClick(Sender: TObject);
 begin
   if SaveDialog1.Execute then
   begin
-    ExpDataSet.SaveFileAs(SaveDialog1.FileName);
+    FileName := SaveDialog1.FileName;
+    ExpDataSet.SaveFileAs(FileName);
+    AutoSaveCheck.Enabled := true;
   end;
+end;
+
+procedure TForm1.SwitchTimerClick(Sender: TObject);
+begin
+  if HoldInterval.Enabled then
+    StopTimer
+  else
+    StartTimer;
+end;
+
+procedure TForm1.StartTimer;
+begin
+  HoldInterval.Interval := string(IntervalSet.Caption).ToInteger();
+  HoldInterval.Enabled := true;
+  SwitchTimer.Caption := 'Stop';
+end;
+
+procedure TForm1.StopTimer;
+begin
+  HoldInterval.Enabled := false;
+  SwitchTimer.Caption := 'Start';
 end;
 
 end.
